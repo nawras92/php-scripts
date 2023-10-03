@@ -2,6 +2,10 @@
 
 // Include Database Configuration
 include_once '../db-config.php';
+// Include the articles validator
+include_once '../utils/ApiValidator.php';
+// Include the articles sanitizer
+include_once '../utils/ApiSanitizer.php';
 
 // HTTP Method
 $method = $_SERVER['REQUEST_METHOD'];
@@ -115,10 +119,10 @@ if ($method === 'POST') {
   try {
     // Get Data
     $data = json_decode(file_get_contents('php://input'), true);
+    // Sanitize Data
+    $data = APISanitizer::sanitizeArticle($data);
     extract($data);
-    // Validate Data
-    // Here Validation and sanitization
-    $errors = [];
+    $errors = APIValidator::validateArticle($data);
     if (!empty($errors)) {
       http_response_code(422);
       echo json_encode([
@@ -261,9 +265,10 @@ if ($method === 'PUT') {
   if (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0) {
     $articleId = $_GET['id'];
     $data = json_decode(file_get_contents('php://input'), true);
+    // Sanitize Data
+    $data = APISanitizer::sanitizeArticle($data);
     extract($data);
-    // Here Validation and sanitization
-    $errors = [];
+    $errors = APIValidator::validateArticle($data);
     if (!empty($errors)) {
       http_response_code(422);
       echo json_encode([
