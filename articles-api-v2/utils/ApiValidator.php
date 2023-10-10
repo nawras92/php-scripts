@@ -77,4 +77,57 @@ class APIValidator
 
     return $errors;
   }
+
+  public static function validateLogin($loginData)
+  {
+    $schema = [
+      'email' => [
+        'required' => true,
+        'type' => 'email',
+      ],
+      'password' => [
+        'required' => true,
+        'min_length' => 3,
+        'max_length' => 30,
+      ],
+    ];
+    // Get Errors
+    $errors = [];
+    foreach ($schema as $field => $rules) {
+      // if required, add error
+      if ($rules['required'] && !isset($loginData[$field])) {
+        $errors[$field] = "Field '$field' is required";
+      }
+      // Check min length
+      if (
+        isset($loginData[$field]) &&
+        isset($rules['min_length']) &&
+        strlen($loginData[$field]) < $rules['min_length']
+      ) {
+        $errors[
+          $field
+        ] = "Field '$field' must be at least {$rules['min_length']} characters long";
+      }
+      // Check the max length
+      if (
+        isset($loginData[$field]) &&
+        isset($rules['max_length']) &&
+        strlen($loginData[$field]) > $rules['max_length']
+      ) {
+        $errors[
+          $field
+        ] = "Field '$field' must not exceed {$rules['max_length']} characters long";
+      }
+      // Check data type
+      if (isset($loginData[$field]) && isset($rules['type'])) {
+        if ($rules['type'] === 'email') {
+          if (!filter_var($loginData[$field], FILTER_VALIDATE_EMAIL)) {
+            $errors[$field] = "Field '$field' must be of type email ";
+          }
+        }
+      }
+    }
+
+    return $errors;
+  }
 }

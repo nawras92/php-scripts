@@ -12,4 +12,14 @@ class APISanitizer
 
     return $cleanData;
   }
+  public static function sanitizeLogin($loginData)
+  {
+    $cleanData = [];
+    foreach ($loginData as $key => $value) {
+      $cleanValue = trim(strip_tags($value));
+      $cleanData[$key] = $cleanValue;
+    }
+
+    return $cleanData;
+  }
 }
