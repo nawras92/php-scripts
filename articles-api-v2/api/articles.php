@@ -6,6 +6,8 @@ include_once '../db-config.php';
 include_once '../utils/ApiValidator.php';
 // Include the articles sanitizer
 include_once '../utils/ApiSanitizer.php';
+// Include is-authorized
+include_once '../utils/is-authorized.php';
 
 // HTTP Method
 $method = $_SERVER['REQUEST_METHOD'];
@@ -117,6 +119,21 @@ if ($method === 'GET') {
 // POST an Article
 if ($method === 'POST') {
   try {
+    // check if user authorized
+    $authorized = is_user_authorized();
+    if (!$authorized['authorized']) {
+      http_response_code(401);
+      echo json_encode([
+        'status' => 'error',
+        'data' => null,
+        'message' => 'Unauthorized',
+        'error' => [
+          'code' => 401,
+          'message' => $authorized['message'],
+        ],
+      ]);
+      return;
+    }
     // Get Data
     $data = json_decode(file_get_contents('php://input'), true);
     // Sanitize Data
@@ -206,6 +223,21 @@ if ($method === 'POST') {
 
 // Delete an article
 if ($method === 'DELETE') {
+  // check if user authorized
+  $authorized = is_user_authorized();
+  if (!$authorized['authorized']) {
+    http_response_code(401);
+    echo json_encode([
+      'status' => 'error',
+      'data' => null,
+      'message' => 'Unauthorized',
+      'error' => [
+        'code' => 401,
+        'message' => $authorized['message'],
+      ],
+    ]);
+    return;
+  }
   if (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0) {
     $articleId = $_GET['id'];
     try {
@@ -262,6 +294,21 @@ if ($method === 'DELETE') {
 
 // Update an article
 if ($method === 'PUT') {
+  // check if user authorized
+  $authorized = is_user_authorized();
+  if (!$authorized['authorized']) {
+    http_response_code(401);
+    echo json_encode([
+      'status' => 'error',
+      'data' => null,
+      'message' => 'Unauthorized',
+      'error' => [
+        'code' => 401,
+        'message' => $authorized['message'],
+      ],
+    ]);
+    return;
+  }
   if (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0) {
     $articleId = $_GET['id'];
     $data = json_decode(file_get_contents('php://input'), true);
