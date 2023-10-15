@@ -22,18 +22,19 @@ function verifyToken($token)
     // is expired?
     $current_time = time();
     if ($exp < $current_time) {
-      return false;
+      return ['valid' => false, 'message' => 'Token Expired'];
     }
     // id/email exists in our db
     $sql_query = "SELECT * FROM `nx_users` WHERE `id` = '$user_id' AND `email` = '$user_email'";
     $result = $conn->query($sql_query);
     if ($result->num_rows > 0) {
-      return true;
+      $user = $result->fetch_assoc();
+      return ['valid' => true, 'data' => $user];
     }
 
-    return false;
+    return ['valid' => false, 'message' => 'Token not Valid'];
   } catch (Exception $e) {
-    return false;
+    return ['valid' => false, 'message' => 'Token not Valid' . $e->message];
   }
 }
 function is_user_authorized()
@@ -49,16 +50,18 @@ function is_user_authorized()
   }
 
   $token = substr($_SERVER['HTTP_AUTHORIZATION'], 7);
-  if (verifyToken($token)) {
+  $is_valid = verifyToken($token); // [valid: true/false, data: user]
+  if ($is_valid['valid']) {
     // valid
     return [
       'authorized' => true,
+      'data' => $is_valid['data'],
       'message' => 'valid token',
     ];
   } else {
     return [
       'authorized' => false,
-      'message' => 'Authorization token not valid',
+      'message' => 'Authorization token not valid' . $is_valid['message'],
     ];
   }
 }
