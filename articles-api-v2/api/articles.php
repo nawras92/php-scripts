@@ -74,8 +74,27 @@ if ($method === 'GET' && isset($_GET['id'])) {
 // Get All articles
 if ($method === 'GET') {
   $articles = [];
+  // get current page from url
+  $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+  // get items per page from url
+  $perPage = isset($_GET['perPage']) ? (int) $_GET['perPage'] : 5;
+  // get order
+  $order = isset($_GET['order']) && $_GET['order'] === 'asc' ? 'asc' : 'desc';
+  $searchQuery = isset($_GET['search']) ? $_GET['search'] : '';
+
   try {
-    $sql_query = 'SELECT * FROM `nx_articles`';
+    // Get articles count
+    $countQuery = 'SELECT COUNT(*) as total FROM `nx_articles`';
+    $countResult = $conn->query($countQuery);
+    $total_records = $countResult->fetch_assoc()['total'];
+
+    // number of pages
+    $total_pages = ceil($total_records / $perPage);
+
+    // calculate offset
+    $offset = ($page - 1) * $perPage;
+
+    $sql_query = "SELECT * FROM `nx_articles` WHERE `title` LIKE '%$searchQuery%' OR `description` like '%$searchQuery%' OR `content` like '%$searchQuery%' ORDER BY `id` $order LIMIT $perPage OFFSET $offset";
     $result = $conn->query($sql_query);
     if ($result->num_rows > 0) {
       while ($row = $result->fetch_assoc()) {
@@ -87,18 +106,24 @@ if ($method === 'GET') {
         'data' => $articles,
         'message' => 'Operation Completed',
         'error' => null,
+        'meta' => [
+          'page' => $page,
+          'perPage' => $perPage,
+          'orderBy' => 'id',
+          'order' => $order,
+          'search' => $searchQuery,
+          'count' => (int) $total_records,
+          'totalPages' => (int) $total_pages,
+        ],
       ]);
       return;
     } else {
-      http_response_code(404);
+      http_response_code(200);
       echo json_encode([
-        'status' => 'error',
-        'data' => null,
-        'message' => 'Records Not Found',
-        'error' => [
-          'code' => 404,
-          'message' => 'There are no articles Found',
-        ],
+        'status' => 'success',
+        'data' => [],
+        'message' => 'There are no records',
+        'error' => null,
       ]);
       return;
     }
@@ -134,8 +159,11 @@ if ($method === 'POST') {
       ]);
       return;
     }
+    // User is authorized
+    $user = $is_authorized['data'];
     // Get Data
     $data = json_decode(file_get_contents('php://input'), true);
+    $data['author_id'] = $user['id'];
     // Sanitize Data
     $data = APISanitizer::sanitizeArticle($data);
     extract($data);
