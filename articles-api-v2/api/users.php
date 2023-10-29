@@ -284,4 +284,74 @@ if ($method === 'PUT') {
 
   exit();
 }
+
 // Delete User
+if ($method === 'DELETE') {
+  if (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0) {
+    $userId = $_GET['id'];
+    // check if user authorized
+    $authorized = is_super_admin();
+    if (!$authorized['authorized']) {
+      http_response_code(401);
+      echo json_encode([
+        'status' => 'error',
+        'data' => null,
+        'message' => 'Unauthorized',
+        'error' => [
+          'code' => 401,
+          'message' => $authorized['message'],
+        ],
+      ]);
+      return;
+    }
+    try {
+      $sql_query = "DELETE FROM nx_users WHERE `nx_users`.`id` = '$userId'";
+      if ($conn->query($sql_query) === true) {
+        http_response_code(200);
+        echo json_encode([
+          'status' => 'success',
+          'data' => null,
+          'message' => 'Delete Operation Completed',
+          'error' => null,
+        ]);
+        return;
+      } else {
+        echo json_encode([
+          'status' => 'error',
+          'data' => null,
+          'message' => 'SQL Error',
+          'error' => [
+            'code' => 500,
+            'message' => $conn->error,
+          ],
+        ]);
+        return;
+      }
+    } catch (Exception $error) {
+      echo json_encode([
+        'status' => 'error',
+        'data' => null,
+        'message' => 'Server Error',
+        'error' => [
+          'code' => 500,
+          'message' => $error,
+        ],
+      ]);
+      return;
+    }
+  } else {
+    http_response_code(400);
+    echo json_encode([
+      'status' => 'error',
+      'data' => null,
+      'message' => 'Invalid ID',
+      'error' => [
+        'code' => 400,
+        'message' => 'The ID must be a valid integer',
+      ],
+    ]);
+    return;
+  }
+
+  exit();
+}
