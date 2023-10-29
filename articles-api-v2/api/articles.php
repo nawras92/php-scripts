@@ -12,6 +12,63 @@ include_once '../utils/is-authorized.php';
 // HTTP Method
 $method = $_SERVER['REQUEST_METHOD'];
 
+// GET Articles by  Author Id
+if ($method === 'GET' && isset($_GET['author_id'])) {
+  // Validate ID
+  if (is_numeric($_GET['author_id']) && $_GET['author_id'] > 0) {
+    $author_id = $_GET['author_id'];
+    try {
+      // Send Query to DB
+      $sql_query = "SELECT * FROM `nx_articles` WHERE author_id = '$author_id'";
+      $result = $conn->query($sql_query);
+      if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+          $articles[] = $row;
+        }
+        http_response_code(200);
+        echo json_encode([
+          'status' => 'success',
+          'data' => $articles,
+          'message' => 'Operation completed!',
+          'error' => null,
+        ]);
+        return;
+      } else {
+        http_response_code(200);
+        echo json_encode([
+          'status' => 'success',
+          'data' => [],
+          'message' => 'There are no articles written by this user',
+          'error' => 'null',
+        ]);
+        return;
+      }
+    } catch (Exception $error) {
+      echo json_encode([
+        'status' => 'error',
+        'data' => null,
+        'message' => 'Server Error',
+        'error' => [
+          'code' => 500,
+          'message' => $error,
+        ],
+      ]);
+      return;
+    }
+  } else {
+    http_response_code(400);
+    echo json_encode([
+      'status' => 'error',
+      'data' => null,
+      'message' => 'Invalid ID',
+      'error' => [
+        'code' => 400,
+        'message' => 'The Author ID must be a valid integer',
+      ],
+    ]);
+    return;
+  }
+}
 // GET a single article
 if ($method === 'GET' && isset($_GET['id'])) {
   // Validate ID
