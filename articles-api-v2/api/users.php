@@ -194,4 +194,89 @@ if ($method === 'POST') {
   return;
 }
 // Edit User
+if ($method === 'PUT') {
+  if (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0) {
+    $userId = $_GET['id'];
+    // check if user authorized
+    $authorized = is_super_admin();
+    if (!$authorized['authorized']) {
+      http_response_code(401);
+      echo json_encode([
+        'status' => 'error',
+        'data' => null,
+        'message' => 'Unauthorized',
+        'error' => [
+          'code' => 401,
+          'message' => $authorized['message'],
+        ],
+      ]);
+      return;
+    }
+    $data = json_decode(file_get_contents('php://input'), true);
+    // You can reset password and change email in other point, if you want
+    // Sanitize Data
+    $data = APISanitizer::sanitizeUser($data);
+    extract($data);
+    $errors = APIValidator::validateUser($data, true);
+    if (!empty($errors)) {
+      http_response_code(422);
+      echo json_encode([
+        'status' => 'error',
+        'data' => null,
+        'message' => 'Valdiation Error',
+        'error' => [
+          'code' => 422,
+          'message' => $errors,
+        ],
+      ]);
+      return;
+    }
+    //Process the user data
+    $columnNames = array_keys($data);
+    $columnValues = array_values($data);
+    $updatedClause = [];
+
+    foreach ($columnNames as $columnName) {
+      $updatedClause[] = "`$columnName` = '$data[$columnName]'";
+    }
+    $updatedColumns = implode(', ', $updatedClause);
+
+    $query_sql = "Update `nx_users` SET $updatedColumns WHERE `id` = '$userId'";
+    $result = $conn->query($query_sql);
+    if ($result === true) {
+      http_response_code(200);
+      echo json_encode([
+        'status' => 'success',
+        'data' => null,
+        'message' => 'Update Operation compeleted.',
+        'error' => null,
+      ]);
+      return;
+    } else {
+      http_response_code(500);
+      echo json_encode([
+        'status' => 'error',
+        'data' => null,
+        'message' => 'SQL Error',
+        'error' => [
+          'code' => 500,
+          'message' => $conn->error,
+        ],
+      ]);
+    }
+  } else {
+    http_response_code(400);
+    echo json_encode([
+      'status' => 'error',
+      'data' => null,
+      'message' => 'Invalid ID',
+      'error' => [
+        'code' => 400,
+        'message' => 'The ID must be a valid integer',
+      ],
+    ]);
+  }
+
+  exit();
+}
 // Delete User

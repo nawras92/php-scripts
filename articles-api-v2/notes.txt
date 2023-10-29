@@ -1,5 +1,4 @@
 Todo:
-4- Super Admin can add users
 5- Super Admin can edit users
 6- Super Admin can remove users
 7- Add Reset Password functionality
@@ -13,3 +12,4 @@ Done:
 1- add role column in the users table:  Author, SuperAdmin
 2- Only authors ( + SuperAdmin ) can edit/delete their articles
 3- Add new API point: articles by author id  
+4- Super Admin can add users
