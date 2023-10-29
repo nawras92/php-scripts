@@ -304,6 +304,22 @@ if ($method === 'DELETE') {
       ]);
       return;
     }
+    // You cannot delete super admin
+    $superUser = $authorized['data'];
+    if ($userId == $superUser['id']) {
+      http_response_code(401);
+      echo json_encode([
+        'status' => 'error',
+        'data' => null,
+        'message' => 'Unauthorized',
+        'error' => [
+          'code' => 401,
+          'message' => 'You cannot delete your own record',
+        ],
+      ]);
+      return;
+    }
+
     try {
       $sql_query = "DELETE FROM nx_users WHERE `nx_users`.`id` = '$userId'";
       if ($conn->query($sql_query) === true) {
