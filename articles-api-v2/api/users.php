@@ -231,6 +231,11 @@ if ($method === 'PUT') {
       ]);
       return;
     }
+    // Hash the password
+    if ($data['password']) {
+      $password = password_hash($data['password'], PASSWORD_DEFAULT);
+      $data['password'] = $password;
+    }
     //Process the user data
     $columnNames = array_keys($data);
     $columnValues = array_values($data);
