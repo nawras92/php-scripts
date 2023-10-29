@@ -160,7 +160,7 @@ if ($method === 'POST') {
       return;
     }
     // User is authorized
-    $user = $is_authorized['data'];
+    $user = $authorized['data'];
     // Get Data
     $data = json_decode(file_get_contents('php://input'), true);
     $data['author_id'] = $user['id'];
@@ -251,23 +251,23 @@ if ($method === 'POST') {
 
 // Delete an article
 if ($method === 'DELETE') {
-  // check if user authorized
-  $authorized = is_user_authorized();
-  if (!$authorized['authorized']) {
-    http_response_code(401);
-    echo json_encode([
-      'status' => 'error',
-      'data' => null,
-      'message' => 'Unauthorized',
-      'error' => [
-        'code' => 401,
-        'message' => $authorized['message'],
-      ],
-    ]);
-    return;
-  }
   if (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0) {
     $articleId = $_GET['id'];
+    // check if user authorized
+    $authorized = is_owner($articleId);
+    if (!$authorized['authorized']) {
+      http_response_code(401);
+      echo json_encode([
+        'status' => 'error',
+        'data' => null,
+        'message' => 'Unauthorized',
+        'error' => [
+          'code' => 401,
+          'message' => $authorized['message'],
+        ],
+      ]);
+      return;
+    }
     try {
       $sql_query = "DELETE FROM nx_articles WHERE `nx_articles`.`id` = '$articleId'";
       if ($conn->query($sql_query) === true) {
@@ -322,28 +322,28 @@ if ($method === 'DELETE') {
 
 // Update an article
 if ($method === 'PUT') {
-  // check if user authorized
-  $authorized = is_user_authorized();
-  if (!$authorized['authorized']) {
-    http_response_code(401);
-    echo json_encode([
-      'status' => 'error',
-      'data' => null,
-      'message' => 'Unauthorized',
-      'error' => [
-        'code' => 401,
-        'message' => $authorized['message'],
-      ],
-    ]);
-    return;
-  }
   if (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0) {
     $articleId = $_GET['id'];
+    // check if user authorized
+    $authorized = is_owner($articleId);
+    if (!$authorized['authorized']) {
+      http_response_code(401);
+      echo json_encode([
+        'status' => 'error',
+        'data' => null,
+        'message' => 'Unauthorized',
+        'error' => [
+          'code' => 401,
+          'message' => $authorized['message'],
+        ],
+      ]);
+      return;
+    }
     $data = json_decode(file_get_contents('php://input'), true);
     // Sanitize Data
     $data = APISanitizer::sanitizeArticle($data);
     extract($data);
-    $errors = APIValidator::validateArticle($data);
+    $errors = APIValidator::validateArticle($data, true);
     if (!empty($errors)) {
       http_response_code(422);
       echo json_encode([
@@ -369,22 +369,6 @@ if ($method === 'PUT') {
         'error' => [
           'code' => 404,
           'message' => 'The provided article_id has no record in the database',
-        ],
-      ]);
-      return;
-    }
-    // Does the $author_id exist?
-    $query_user = "SELECT * FROM `nx_users` WHERE `id` = '$author_id'";
-    $result = $conn->query($query_user);
-    if ($result->num_rows === 0) {
-      http_response_code(404);
-      echo json_encode([
-        'status' => 'error',
-        'data' => null,
-        'message' => 'Record not found.',
-        'error' => [
-          'code' => 404,
-          'message' => 'The provided author_id has no record in the database',
         ],
       ]);
       return;

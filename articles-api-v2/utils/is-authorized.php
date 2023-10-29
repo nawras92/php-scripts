@@ -66,6 +66,46 @@ function is_user_authorized()
   }
 }
 
+function is_owner($articleId)
+{
+  global $conn;
+  // check if user is logged In
+  $is_logged_in = is_user_authorized();
+  if (!$is_logged_in['authorized']) {
+    return [
+      'authorized' => false,
+      'message' => $is_logged_in['message'],
+    ];
+  }
+  $user = $is_logged_in['data'];
+  $user_id = $user['id'];
+  $user_role = $user['role'];
+  // if logged in user is super admin, you can edit/delete
+  if ($user_role === 'SUPERADMIN') {
+    return [
+      'authorized' => true,
+      'message' => 'Super user has the right to manage all the articles',
+      'data' => $user,
+    ];
+  }
+  // Check if the logged in user, is the author
+  $sql_query = "SELECT * FROM `nx_articles` WHERE `id` = '$articleId' AND `author_id` = '$user_id'";
+  $result = $conn->query($sql_query);
+  if ($result->num_rows > 0) {
+    $article = $result->fetch_assoc();
+    return [
+      'authorized' => true,
+      'message' => 'The logged in user has the right to manage this article',
+      'data' => $user,
+    ];
+  }
+
+  return [
+    'authorized' => false,
+    'message' => 'The logged in user has no right to manage this article',
+  ];
+}
+
 // Starts with
 function startsWith($string, $substring)
 {

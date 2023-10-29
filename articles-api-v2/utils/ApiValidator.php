@@ -2,16 +2,16 @@
 
 class APIValidator
 {
-  public static function validateArticle($article)
+  public static function validateArticle($article, $edit = false)
   {
     $schema = [
       'title' => [
-        'required' => true,
+        'required' => !$edit,
         'min_length' => 5,
         'max_length' => 80,
       ],
       'description' => [
-        'required' => true,
+        'required' => !$edit,
         'min_length' => 0,
         'max_length' => 160,
       ],
@@ -21,7 +21,7 @@ class APIValidator
         'max_length' => 5000,
       ],
       'author_id' => [
-        'required' => true,
+        'required' => !$edit,
         'type' => 'integer',
       ],
       'category' => [
