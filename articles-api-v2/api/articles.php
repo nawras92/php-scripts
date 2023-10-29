@@ -13,6 +13,7 @@ include_once '../utils/is-authorized.php';
 $method = $_SERVER['REQUEST_METHOD'];
 
 // GET Articles by  Author Id
+// Homework: Apply pagination and filtering
 if ($method === 'GET' && isset($_GET['author_id'])) {
   // Validate ID
   if (is_numeric($_GET['author_id']) && $_GET['author_id'] > 0) {

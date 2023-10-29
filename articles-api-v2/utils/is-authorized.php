@@ -34,7 +34,7 @@ function verifyToken($token)
 
     return ['valid' => false, 'message' => 'Token not Valid'];
   } catch (Exception $e) {
-    return ['valid' => false, 'message' => 'Token not Valid' . $e->message];
+    return ['valid' => false, 'message' => 'Token not Valid'];
   }
 }
 function is_user_authorized()
@@ -103,6 +103,31 @@ function is_owner($articleId)
   return [
     'authorized' => false,
     'message' => 'The logged in user has no right to manage this article',
+  ];
+}
+
+function is_super_admin()
+{
+  // check if user is logged In
+  $is_logged_in = is_user_authorized();
+  if (!$is_logged_in['authorized']) {
+    return [
+      'authorized' => false,
+      'message' => $is_logged_in['message'],
+    ];
+  }
+  $user = $is_logged_in['data'];
+  $user_role = $user['role'];
+  if ($user_role === 'SUPERADMIN') {
+    return [
+      'authorized' => true,
+      'message' => 'The logged in user is super admin',
+      'data' => $user,
+    ];
+  }
+  return [
+    'authorized' => false,
+    'message' => 'This user is not a super admin',
   ];
 }
 

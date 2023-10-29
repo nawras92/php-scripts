@@ -22,4 +22,14 @@ class APISanitizer
 
     return $cleanData;
   }
+  public static function sanitizeUser($userData)
+  {
+    $cleanData = [];
+    foreach ($userData as $key => $value) {
+      $cleanValue = trim(strip_tags($value));
+      $cleanData[$key] = $cleanValue;
+    }
+
+    return $cleanData;
+  }
 }
