@@ -11,7 +11,7 @@ include_once '../utils/is-authorized.php';
 // HTTP Method
 $method = $_SERVER['REQUEST_METHOD'];
 
-// POST a change password request
+// POST a change email request
 if ($method === 'POST') {
   // Is the user logged in?
   $authorized = is_user_authorized();
@@ -32,8 +32,8 @@ if ($method === 'POST') {
   try {
     // Get User Data
     $data = json_decode(file_get_contents('php://input'), true);
-    $data = APISanitizer::sanitizeChangePassword($data);
-    $errors = APIValidator::validateChangePassword($data);
+    $data = APISanitizer::sanitizeChangeEmail($data);
+    $errors = APIValidator::validateChangeEmail($data);
     if (!empty($errors)) {
       http_response_code(422);
       echo json_encode([
@@ -47,7 +47,7 @@ if ($method === 'POST') {
       ]);
       return;
     }
-    extract($data); // email/currentPassword/newPassword
+    extract($data); // email, password, newEmail
     // check if data['email'] === $logged in user email
     $logged_in_user = $authorized['data'];
     $logged_in_user_email = $logged_in_user['email'];
@@ -59,7 +59,7 @@ if ($method === 'POST') {
         'message' => 'Unauthorized',
         'error' => [
           'code' => 401,
-          'message' => "You cannot change other users' passwords",
+          'message' => "You cannot change other users' emails",
         ],
       ]);
       return;
@@ -69,20 +69,18 @@ if ($method === 'POST') {
     $result = $conn->query($sql_query);
     if ($result->num_rows === 1) {
       $dbUser = $result->fetch_assoc();
-      $dbPassword = $dbUser['password'];
-      if (password_verify($currentPassword, $dbPassword)) {
+      $dbUserId = $dbUser['id'];
+      $dbUserPassword = $dbUser['password'];
+      if (password_verify($password, $dbUserPassword)) {
         // correct password
-        // change password here
-        // hash the new password
-        $hashNewPassword = password_hash($newPassword, PASSWORD_DEFAULT);
         // send update request to the database
-        $update_query = "UPDATE `nx_users` SET `password` = '$hashNewPassword' WHERE `email` = '$email'";
+        $update_query = "UPDATE `nx_users` SET `email` = '$newEmail' WHERE `id` = '$dbUserId'";
         if ($conn->query($update_query) === true) {
           // Password has been updated
           http_response_code(200);
           echo json_encode([
             'status' => 'success',
-            'message' => 'Password has been changed successfully.',
+            'message' => 'Email has been changed successfully.',
             'data' => null,
             'error' => null,
           ]);
@@ -110,7 +108,7 @@ if ($method === 'POST') {
           'data' => null,
           'error' => [
             'code' => 400,
-            'message' => 'The current password field value is incorrect',
+            'message' => 'The provided password field value is incorrect',
           ],
         ]);
         return;
