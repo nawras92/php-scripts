@@ -1,9 +1,9 @@
 Todo:
-5- Super Admin can edit users
-6- Super Admin can remove users
-7- Add Reset Password functionality
-8- Add Change Email functionality
-
+7- Add Reset Password functionality: reset-password.php
+change: email, current password, new password,
+reset: email -  
+8- Add Change Email functionality:
+current email, password, new email
 -----
 Errors:
 ----
@@ -13,3 +13,5 @@ Done:
 2- Only authors ( + SuperAdmin ) can edit/delete their articles
 3- Add new API point: articles by author id  
 4- Super Admin can add users
+5- Super Admin can edit users
+6- Super Admin can remove users

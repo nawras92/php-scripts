@@ -22,7 +22,8 @@ function verifyToken($token)
     // is expired?
     $current_time = time();
     if ($exp < $current_time) {
-      return ['valid' => false, 'message' => 'Token Expired'];
+      /* return ['valid' => false, 'message' => 'Token Expired']; */
+      throw new Exception('Token Expired');
     }
     // id/email exists in our db
     $sql_query = "SELECT * FROM `nx_users` WHERE `id` = '$user_id' AND `email` = '$user_email'";
@@ -32,9 +33,13 @@ function verifyToken($token)
       return ['valid' => true, 'data' => $user];
     }
 
-    return ['valid' => false, 'message' => 'Token not Valid'];
+    throw new Exception('User not found in the database');
+    /* return ['valid' => false, 'message' => 'Token not Valid']; */
   } catch (Exception $e) {
-    return ['valid' => false, 'message' => 'Token not Valid'];
+    return [
+      'valid' => false,
+      'message' => 'Token not Valid: ' . $e->getMessage(),
+    ];
   }
 }
 function is_user_authorized()

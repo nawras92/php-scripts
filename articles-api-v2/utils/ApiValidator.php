@@ -207,4 +207,62 @@ class APIValidator
 
     return $errors;
   }
+  public static function validateChangePassword($data)
+  {
+    $schema = [
+      'email' => [
+        'required' => true,
+        'type' => 'email',
+      ],
+      'currentPassword' => [
+        'required' => true,
+        'min_length' => 3,
+        'max_length' => 50,
+      ],
+      'newPassword' => [
+        'required' => true,
+        'min_length' => 3,
+        'max_length' => 50,
+      ],
+    ];
+    // Get Errors
+    $errors = [];
+    foreach ($schema as $field => $rules) {
+      // if required, add error
+      if ($rules['required'] && !isset($data[$field])) {
+        $errors[$field] = "Field '$field' is required";
+      }
+      // Check min length
+      if (
+        isset($user[$field]) &&
+        isset($rules['min_length']) &&
+        strlen($data[$field]) < $rules['min_length']
+      ) {
+        $errors[
+          $field
+        ] = "Field '$field' must be at least {$rules['min_length']} characters long";
+      }
+      // Check the max length
+      if (
+        isset($data[$field]) &&
+        isset($rules['max_length']) &&
+        strlen($data[$field]) > $rules['max_length']
+      ) {
+        $errors[
+          $field
+        ] = "Field '$field' must not exceed {$rules['max_length']} characters long";
+      }
+      // validate type field
+      if (isset($data[$field]) && isset($rules['type'])) {
+        // validate email
+        if ($rules['type'] === 'email') {
+          if (!filter_var($data[$field], FILTER_VALIDATE_EMAIL)) {
+            $errors[$field] = "Field '$field' must be of type email ";
+          }
+        }
+      }
+    }
+
+    return $errors;
+  }
 }
